@@ -10,7 +10,6 @@ using System.Xml.Linq;
 namespace SplitVideo {
 	public class FFProbeData : IComparable<FFProbeData> {
 		public bool IsKeyFrame;
-		public double TimestampInSecondsDbl;
 		public UInt64 TimestampInMicroSeconds;
 		public UInt64 TimestampInTimebase;
 		public FFProbeData Previous;
@@ -32,11 +31,12 @@ namespace SplitVideo {
 				bool isKeyframe = frame.Element( "key_frame" ).Value == "1";
 				if ( keyframesOnly && !isKeyframe ) { continue; }
 
+				string timestampInSecondsStr = frame.Element( "pkt_pts_time" ).Value;
+				double timestampInSecondsDbl = Double.Parse( timestampInSecondsStr, System.Globalization.CultureInfo.InvariantCulture );
+				if ( timestampInSecondsDbl < 0.0 ) { continue; }
+
 				FFProbeData f = new FFProbeData();
 				f.IsKeyFrame = isKeyframe;
-				string timestampInSecondsStr = frame.Element( "pkt_pts_time" ).Value;
-				f.TimestampInSecondsDbl = Double.Parse( timestampInSecondsStr, System.Globalization.CultureInfo.InvariantCulture );
-				if ( f.TimestampInSecondsDbl < 0.0 ) { continue; }
 				f.TimestampInMicroSeconds = ToMicroSec( timestampInSecondsStr );
 				f.TimestampInTimebase = UInt64.Parse( frame.Element( "pkt_pts" ).Value );
 
