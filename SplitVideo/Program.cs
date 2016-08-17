@@ -178,8 +178,6 @@ namespace SplitVideo {
 				ffmpegArgs.Add( "-y" );
 				if ( i != 0 ) {
 					ffmpegArgs.Add( "-ss" );
-
-					string targetTimestamp;
 					UInt64 diff = framesToSplitOnList[i - 1].Next.TimestampInMicroSeconds - framesToSplitOnList[i - 1].TimestampInMicroSeconds;
 					UInt64 target = framesToSplitOnList[i - 1].TimestampInMicroSeconds + diff / 2;
 					ffmpegArgs.Add( FFProbeData.MicroSecToSecStr( target ) );
@@ -190,7 +188,11 @@ namespace SplitVideo {
 				ffmpegArgs.Add( "copy" );
 				if ( i != framesToSplitOn.Count ) {
 					ffmpegArgs.Add( "-to" );
-					ffmpegArgs.Add( framesToSplitOnList[i].TimestampInSecondsStr );
+					UInt64 target = framesToSplitOnList[i].TimestampInMicroSeconds;
+					if ( i != 0 ) {
+						target -= framesToSplitOnList[i - 1].TimestampInMicroSeconds;
+					}
+					ffmpegArgs.Add( FFProbeData.MicroSecToSecStr( target ) );
 				}
 				ffmpegArgs.Add( System.IO.Path.Combine( System.IO.Path.GetDirectoryName( filename ), System.IO.Path.GetFileNameWithoutExtension( filename ) + "-part" + ( i + 1 ) + ".mp4" ) );
 
