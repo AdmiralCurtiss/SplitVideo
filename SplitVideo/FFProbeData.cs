@@ -10,12 +10,17 @@ using System.Xml.Linq;
 namespace SplitVideo {
 	public class FFProbeData : IComparable<FFProbeData> {
 		public bool IsKeyFrame;
-		public string TimestampInSecondsStr;
 		public double TimestampInSecondsDbl;
 		public UInt64 TimestampInMicroSeconds;
 		public UInt64 TimestampInTimebase;
 		public FFProbeData Previous;
 		public FFProbeData Next;
+
+		public string TimestampInSecondsStr {
+			get {
+				return FFProbeData.MicroSecToSecStr( TimestampInMicroSeconds );
+			}
+		}
 
 		public static FFProbeData[] Parse( string output, bool keyframesOnly = false ) {
 			List<FFProbeData> data = new List<FFProbeData>();
@@ -29,10 +34,10 @@ namespace SplitVideo {
 
 				FFProbeData f = new FFProbeData();
 				f.IsKeyFrame = isKeyframe;
-				f.TimestampInSecondsStr = frame.Element( "pkt_pts_time" ).Value;
-				f.TimestampInSecondsDbl = Double.Parse( f.TimestampInSecondsStr, System.Globalization.CultureInfo.InvariantCulture );
+				string timestampInSecondsStr = frame.Element( "pkt_pts_time" ).Value;
+				f.TimestampInSecondsDbl = Double.Parse( timestampInSecondsStr, System.Globalization.CultureInfo.InvariantCulture );
 				if ( f.TimestampInSecondsDbl < 0.0 ) { continue; }
-				f.TimestampInMicroSeconds = ToMicroSec( f.TimestampInSecondsStr );
+				f.TimestampInMicroSeconds = ToMicroSec( timestampInSecondsStr );
 				f.TimestampInTimebase = UInt64.Parse( frame.Element( "pkt_pts" ).Value );
 
 				data.Add( f );
